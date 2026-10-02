@@ -37,6 +37,7 @@ ingest.py — сбор исходных данных и наполнение в�
 """
 
 import hashlib
+import re
 from pathlib import Path
 
 import config
@@ -58,46 +59,58 @@ def read_pdf(path: Path) -> list[tuple[int, str]]:
 
 
 READERS = {".txt": read_txt, ".md": read_txt, ".pdf": read_pdf}
-
+DEFAULT_RUBRIC = "general"
 
 # --- Ваша часть (П2) ---
 
 def clean_text(text: str) -> str:
-    r"""Очистить сырой текст перед нарезкой.
-
-    Что обычно нужно убрать: разрывы слов по переносу строки, повторяющиеся
-    колонтитулы, номера страниц отдельной строкой, цепочки пробелов и пустых строк.
-
-    Подсказка: начните с re.sub(r"-\n", "", text) и r"\s+" -> " ", посмотрите
-    на результат глазами и добавьте правила под свои исходные данные.
-    """
-    raise NotImplementedError("П2: реализуйте очистку текста")
-
+    r"""Очистить сырой текст перед нарезкой."""
+    text = re.sub(r"-\n", "", text) # склейка слов, разорванных переносом на границе строки
+    text = text.replace("\u00ad", "") # мягкий перенос, невидим в консоли, ломает поиск
+    text = re.sub(r"[\u00a0\u2009\u202f\t]", " ", text) # неразрывные и тонкие пробелы в обычный
+    text = re.sub(r"(?<!\n)\n(?!\n)", " ", text) # одиночный перенос строки внутри абзаца в пробел
+    text = re.sub(r"\n{2,}", "\n", text) # абзацные переносы схлопываем
+    text = re.sub(r"\[\s+(\d+)\s*\]", r"[\1]", text) # [ 30] в [30]
+    text = re.sub(r"(\[\d+\])(?=\S)", r"\1 ", text) # [5]Kyunghyun в [5] Kyunghyun
+    text = re.sub(r"\s+\d{1,3}\s*$", "", text) # номер страницы в конце
+    text = re.sub(r"[ ]{2,}", " ", text) # несколько пробелов в один
+    return text.strip()
 
 def chunk_text(text: str, size: int = config.CHUNK_SIZE,
                overlap: int = config.CHUNK_OVERLAP) -> list[str]:
-    """Нарезать текст на чанки размером size с перекрытием overlap.
-
-    Перекрытие нужно, чтобы мысль, попавшая на границу нарезки, не потерялась:
-    её хвост окажется в начале следующего чанка.
-
-    Следите за двумя вещами: шаг сдвига равен size - overlap (не size), и
-    overlap обязан быть меньше size, иначе цикл не сойдётся.
-    """
-    raise NotImplementedError("П2: реализуйте нарезку с перекрытием")
+    if overlap >= size:
+        raise ValueError("overlap должен быть меньше size") # иначе цикл не сойдётся
+    step = size - overlap # шаг сдвига, не size
+    return [text[i:i + size] for i in range(0, len(text), step)
+            if text[i:i + size].strip()]
 
 
 def detect_category(text: str, source: str) -> str:
-    """Определить рубрику чанка.
 
-    Словарь рубрик — ваш проектный выбор, он зависит от домена. Для налогового
-    консультанта это может быть "law" | "faq" | "forms"; для ассистента абитуриента —
-    "admission" | "dormitory" | "schedule".
-
-    Достаточно правил по имени файла и ключевым словам — LLM здесь не нужна.
-    Пустых категорий быть не должно: заведите рубрику по умолчанию.
-    """
-    raise NotImplementedError("П2: реализуйте рубрикацию")
+    # словарь рубрик по теме ML Methods Assistant, слова обрезаны до основы, короткие с пробелом
+    RUBRICS = {
+        "methods": ["attention", "self-attention", "transformer", "bert",
+                    "resnet", "adam", "архитектур", "метод", "алгоритм",
+                    "нейросет", "слой", "layer", "encoder", "decoder",
+                    "gradient", "оптимизац", "learning rate"],
+        "metrics": ["bleu", "f1", "accuracy", "perplexity", "rouge",
+                    "точность", "метрик", "оценк", "score", "benchmark"],
+        "datasets": ["dataset", "corpus", "imagenet", "wmt", "squad",
+                     "mnist", "датасет", "корпус", "выборк", "train set",
+                     "test set", "training data"],
+        "comparisons": ["better than", "outperform", "improve over",
+                        "compare to", "faster than", " versus ", " vs ",
+                        "превосход", "отлича", "сравн", "лучше чем", "хуже чем"],
+    }
+    lowered = text.lower() # поиск по нижнему регистру
+    best_rubric = DEFAULT_RUBRIC # защита если в цикле ничего не нашли
+    best_hits = 0
+    for rubric, keywords in RUBRICS.items():
+        hits = sum(1 for kw in keywords if kw in lowered) # сколько ключевых слов рубрики встретилось в чанке
+        if hits > best_hits: # побеждает рубрика с максимумом совпадений
+            best_hits = hits
+            best_rubric = rubric
+    return best_rubric
 
 
 # --- Сборка индекса: готова ---

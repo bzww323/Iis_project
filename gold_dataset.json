@@ -1,35 +1,35 @@
 [
   {
     "id": 1,
-    "question": "ЗАМЕНИТЕ (П2): вопрос, ответ на который прямо есть в корпусе",
-    "expected_sources": ["имя_файла.pdf"],
+    "question": "Что такое self-attention и чем он отличается от обычного attention?",
+    "expected_sources": ["1706.03762v7.pdf"],
     "expected": "",
     "type": "direct"
   },
   {
     "id": 2,
-    "question": "ЗАМЕНИТЕ (П2): вопрос, ответ на который лежит в другом файле",
-    "expected_sources": ["другой_файл.pdf"],
+    "question": "Какая модель обучается на masked language model и двунаправленном контексте?",
+    "expected_sources": ["1810.04805v2.pdf"],
     "expected": "",
     "type": "direct"
   },
   {
     "id": 3,
-    "question": "ЗАМЕНИТЕ (П2): вопрос на стыке двух разделов базы знаний",
-    "expected_sources": ["имя_файла.pdf", "другой_файл.pdf"],
+    "question": "Как работает оптимизатор с адаптивными оценками первого и второго моментов градиента?",
+    "expected_sources": ["1412.6980v9.pdf"],
+    "expected": "",
+    "type": "direct"
+  },
+  {
+    "id": 4,
+    "question": "Какая связь между BERT и Transformer и как это отражено в архитектуре?",
+    "expected_sources": ["1706.03762v7.pdf", "1810.04805v2.pdf"],
     "expected": "",
     "type": "cross_section"
   },
   {
-    "id": 4,
-    "question": "ЗАМЕНИТЕ (П2): вопрос с неоднозначной формулировкой",
-    "expected_sources": ["имя_файла.pdf"],
-    "expected": "",
-    "type": "ambiguous"
-  },
-  {
     "id": 5,
-    "question": "ЗАМЕНИТЕ (П2): вопрос, ответа на который в корпусе НЕТ",
+    "question": "Какая погода будет завтра в Москве?",
     "expected_sources": [],
     "expected": "В базе знаний нет ответа на этот вопрос",
     "type": "out_of_scope"
