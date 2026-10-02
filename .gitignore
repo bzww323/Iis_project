@@ -1,16 +1,22 @@
-# Секреты — никогда в репозиторий (П7)
 .env
-
-# Данные, порождаемые запуском
 data/chroma/
 data/raw/*
 !data/raw/README.md
+data/finops_baseline.json
 *.db
 security_logs.txt
-
-# Python
 __pycache__/
 *.py[cod]
 .venv/
 venv/
 .pytest_cache/
+.idea/
+.vscode/
+.cache/
+.mypy_cache/
+.ruff_cache/
+*.log
+.ipynb_checkpoints/
+*.bak
+*.tmp
+~$*
