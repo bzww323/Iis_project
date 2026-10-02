@@ -1,7 +1,5 @@
 .env
 data/chroma/
-data/raw/*
-!data/raw/README.md
 data/finops_baseline.json
 *.db
 security_logs.txt
@@ -20,3 +18,4 @@ venv/
 *.bak
 *.tmp
 ~$*
+*.bundle
