@@ -28,7 +28,8 @@ llm_client.py — доступ к языковой модели за общим 
 
 import config
 from contracts import LLMClient
-
+import requests
+import re
 
 class GigaChatClient:
     """Клиент Сбер GigaChat API."""
@@ -61,7 +62,7 @@ class GigaChatClient:
 
 
 class OllamaClient:
-    """Клиент локального инференса через Ollama."""
+    # клиент локального инференса через Ollama
 
     def __init__(self):
         self.model = config.OLLAMA_MODEL
@@ -74,12 +75,44 @@ class OllamaClient:
         У reasoning-моделей ответ приходит с блоком <think>...</think> — решите,
         показывать его пользователю или вырезать, и обоснуйте выбор на защите.
         """
-        raise NotImplementedError("П4: реализуйте вызов Ollama")
+        try:
+            response = requests.post(
+                f"{self.host}/api/chat",
+                json={
+                    "model": self.model,
+                    "messages": messages,
+                    "stream": False, # ответ целиком, а не потоком
+                    "options": {"temperature": temperature}, # температура роли из ROLES
+                },
+                timeout=120, # локальная модель может думать долго, 2 минуты с запасом
+            )
+            response.raise_for_status() # 4xx и 5xx превратит в исключение
+            answer = response.json()["message"]["content"]
+            return self._strip_thinking(answer)
+        except requests.exceptions.Timeout:
+            return "[ошибка Ollama: таймаут 120 секунд, модель не ответила]"
+        except requests.exceptions.ConnectionError:
+            return "[ошибка Ollama: сервис недоступен, проверьте, запущен ли ollama]"
+        except (KeyError, ValueError) as e:
+            return f"[ошибка Ollama: неожиданный формат ответа: {e}]"
+        except requests.exceptions.RequestException as e:
+            return f"[ошибка Ollama: {e}]"
 
     def count_tokens(self, text: str) -> int:
-        """Оценка длины в токенах — та же логика, что и в GigaChatClient."""
-        raise NotImplementedError("П4: реализуйте подсчёт токенов")
+        """Оценка длины в токенах — та же логика, что и в GigaChatClient.
 
+        Для русского текста примерно один токен на три символа.
+        Точность здесь не главное — важен порядок величины.
+        """
+        return max(1, len(text) // 3)
+
+    def _strip_thinking(self, text: str) -> str:
+        """Вырезать блок <think>...</think> из ответа reasoning-модели.
+
+        DeepSeek-R1 вставляет блок рассуждений перед ответом. Пользователю он
+        не нужен — там черновик. Показываем только итоговый ответ.
+        """
+        return re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
 
 def build_client() -> LLMClient:
     """Выбрать бэкенд по конфигурации. Готово, менять не нужно."""
