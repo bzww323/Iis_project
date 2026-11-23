@@ -28,7 +28,7 @@ import streamlit as st
 import config
 from orchestrator import Orchestrator
 
-st.set_page_config(page_title="Справочный ассистент", page_icon="🔎")
+st.set_page_config(page_title="ML Methods Assistant", page_icon="🤖")
 
 
 @st.cache_resource
@@ -45,12 +45,14 @@ if "history" not in st.session_state:
 
 orchestrator = get_orchestrator()
 
-# TODO (П6): замените заголовок и подсказку на свои
-st.title("Справочный ассистент")
-st.caption("Отвечает по загруженной базе знаний и ссылается на источники.")
+# оформление под домен: ml статьи, четыре источника
+st.title("ML Methods Assistant")
+st.caption(
+    "Помощник по методам машинного обучения из научных статей. "
+    "Отвечает по четырём статьям: Transformer, BERT, Adam, ResNet. "
+    "В каждом ответе — ссылка на источник."
+)
 
-# Готовая часть, не убирать: на офлайн-заглушке ответы выглядят осмысленно,
-# и без плашки это легко принять за работающую систему — в том числе на защите.
 if config.LLM_BACKEND == "fake":
     st.warning(
         "Работает офлайн-заглушка LLM (`LLM_BACKEND=fake`): ответы собраны "
@@ -71,13 +73,13 @@ for role, content in st.session_state.history:
     with st.chat_message(role):
         st.markdown(content)
 
-if question := st.chat_input("Задайте вопрос по базе знаний"):
+if question := st.chat_input("Например: чем внимание отличается от внимания к себе?"):
     st.session_state.history.append(("user", question))
     with st.chat_message("user"):
         st.markdown(question)
 
     with st.chat_message("assistant"):
-        with st.spinner("Ищу в базе знаний…"):
+        with st.spinner("Ищу в статьях…"):
             answer = orchestrator.handle(st.session_state.session_id, question)
         st.markdown(answer)
 
