@@ -68,5 +68,19 @@
     "expected_sources": [],
     "expected": "В базе знаний нет ответа на этот вопрос",
     "type": "out_of_scope"
-  }
+  },
+  {
+  "id": 11,
+  "question": "Чем обучение BERT отличается от обучения ResNet?",
+  "expected_sources": ["1810.04805v2.pdf", "1512.03385v1.pdf"],
+  "expected": "BERT обучается через предобучение на masked language model и затем fine-tuning под задачу. ResNet обучается с нуля на размеченных данных с residual connections и без предобучения.",
+  "type": "cross_section"
+  },
+  {
+  "id": 12,
+  "question": "Кто выиграл чемпионат мира по футболу в 2022 году?",
+  "expected_sources": [],
+  "expected": "В базе знаний нет ответа на этот вопрос",
+  "type": "out_of_scope"
+ }
 ]

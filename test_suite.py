@@ -118,8 +118,8 @@ def run() -> None:
     в средние не включаются.
     """
     cases = json.loads(DATASET.read_text(encoding="utf-8"))
-    if len(cases) != 10:
-        print(f"ВНИМАНИЕ: в датасете {len(cases)} вопросов, нужно 10.\n")
+    if len(cases) < 10:
+        print(f"ВНИМАНИЕ: в датасете {len(cases)} вопросов, нужно минимум 10.\n")
 
     # Судья - отдельная модель побольше, чтобы оценка была независимой
     from llm_client import OllamaClient
