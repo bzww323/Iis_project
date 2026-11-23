@@ -19,3 +19,6 @@ venv/
 *.tmp
 ~$*
 *.bundle
+*.gguf
+Modelfile
+check_answers.py
